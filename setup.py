@@ -68,7 +68,6 @@ def check_cudnn_version_and_warn(global_option: str, required_cudnn_version: int
         return False
     return True
 
-
 if not torch.cuda.is_available():
     # https://github.com/NVIDIA/apex/issues/486
     # Extension builds after https://github.com/pytorch/pytorch/pull/23408 attempt to query torch.cuda.get_device_capability(),
@@ -195,7 +194,7 @@ if "--cuda_ext" in sys.argv:
                 "csrc/multi_tensor_novograd.cu",
                 "csrc/multi_tensor_lamb.cu",
                 "csrc/multi_tensor_lamb_mp.cu",
-                "csrc/update_scale_hysteresis.cu",
+                #"csrc/update_scale_hysteresis.cu",
             ],
             extra_compile_args={
                 "cxx": ["-O3"] + version_dependent_macros,
@@ -326,6 +325,30 @@ if "--cuda_ext" in sys.argv:
                     "--expt-extended-lambda",
                 ] + version_dependent_macros,
             },
+        )
+    )
+    ext_modules.append(
+        CUDAExtension(
+            name="upsample_nearest2d_cuda",
+            sources=[
+                "csrc/upsample_nearest2d.cpp",
+                "csrc/upsample_nearest2d_cuda.cu",
+            ],
+            include_dirs=[os.path.join(this_dir, "csrc")],
+            extra_compile_args={
+                "cxx": ["-O3"] + version_dependent_macros,
+                "nvcc": [
+                    "-O3",
+                    "-U__CUDA_NO_HALF_OPERATORS__",
+                    "-U__CUDA_NO_HALF_CONVERSIONS__",
+                    "-U__CUDA_NO_BFLOAT16_OPERATORS__",
+                    "-U__CUDA_NO_BFLOAT16_CONVERSIONS__",
+                    "-U__CUDA_NO_BFLOAT162_OPERATORS__",
+                    "-U__CUDA_NO_BFLOAT162_CONVERSIONS__",
+                    "--expt-relaxed-constexpr",
+                    "--expt-extended-lambda",
+                ] + version_dependent_macros,
+            }
         )
     )
 
